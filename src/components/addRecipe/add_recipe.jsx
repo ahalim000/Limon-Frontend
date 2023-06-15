@@ -3,9 +3,22 @@ import TextareaAutosize from "react-textarea-autosize";
 import { getRecipeClient } from "@/utils";
 import useSWRImmutable from "swr/immutable";
 import _ from "lodash";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
 import Modal from "react-modal";
+import { mutate } from "swr";
+
+let exhaustPagination = async (apiFunc, data) => {
+    let res = [];
+    let resp = await apiFunc(data);
+    res.push(...resp.items);
+    while (resp.page < resp.pages) {
+        data.page = (data.page || 0) + 1;
+        res.push(...resp.items);
+        resp = await apiFunc(data);
+    }
+    return res;
+};
 
 function TextareaAuto({
     id,
@@ -64,9 +77,51 @@ function TimeField({ name }) {
     );
 }
 
-function TagModal({ tagsRender, handleClickAddTag, handleClickDeleteTag }) {
+function TagModal({ handleAddTag, handleDeleteTag }) {
+    const client = getRecipeClient();
+
     let [modalIsOpen, setModalIsOpen] = useState(false);
     let [newTag, setNewTag] = useState("");
+
+    const {
+        data: tags,
+        error: tagsError,
+        isLoading: tagsIsLoading,
+        mutate: tagsRefresh,
+    } = useSWRImmutable(["listTagsModal"], async () => {
+        let tags = await exhaustPagination(
+            (args) => client.tags.listTags(args),
+            {}
+        );
+        tags = _.sortBy(tags, (x) => x.name);
+        return tags;
+    });
+
+    let handleClickAddTag = () => {
+        return async () => {
+            let tag = await client.tags.createTag({
+                requestBody: {
+                    name: newTag,
+                },
+            });
+            tagsRefresh();
+            if (handleAddTag) {
+                handleAddTag(tag.id);
+            }
+            setNewTag("");
+        };
+    };
+
+    let handleClickDeleteTag = (idx) => {
+        return async () => {
+            let tag = tags[idx];
+            await client.tags.deleteTag({ id: tag.id });
+            tagsRefresh();
+            if (handleDeleteTag) {
+                handleDeleteTag(tag.id);
+            }
+        };
+    };
 
     const customStyles = {
         content: {
@@ -120,8 +175,8 @@ function TagModal({ tagsRender, handleClickAddTag, handleClickDeleteTag }) {
                 <div>
                     <ol>
                         <div>
-                            {tagsRender
-                                ? tagsRender.items.map((tag, idx) => (
+                            {tags
+                                ? tags.map((tag, idx) => (
                                       <li
                                           className="flex justify-between mx-4"
                                           key={idx}
@@ -150,7 +205,7 @@ function TagModal({ tagsRender, handleClickAddTag, handleClickDeleteTag }) {
                                                   stroke="currentColor"
                                                   className="w-6 h-6 object-cover hover:cursor-pointer"
                                                   onClick={handleClickDeleteTag(
-                                                      tag.id
+                                                      idx
                                                   )}
                                               >
                                                   <path
@@ -171,6 +226,7 @@ function TagModal({ tagsRender, handleClickAddTag, handleClickDeleteTag }) {
                             placeholder="Add tag"
                             width="48"
                             className="border-2 border-black rounded-md mt-2 py-1 px-2 focus:outline-none resize-none overflow-hidden"
+                            value={newTag}
                             onChange={(event) => setNewTag(event.target.value)}
                         ></TextareaAutosize>
                         <svg
@@ -180,7 +236,7 @@ function TagModal({ tagsRender, handleClickAddTag, handleClickDeleteTag }) {
                             strokeWidth="1.5"
                             stroke="currentColor"
                             className="w-6 h-6 mx-1 mt-3 object-cover hover:cursor-pointer"
-                            onClick={handleClickAddTag(newTag)}
+                            onClick={handleClickAddTag()}
                         >
                             <path
                                 strokeLinecap="round"
@@ -197,7 +253,6 @@ function TagModal({ tagsRender, handleClickAddTag, handleClickDeleteTag }) {
 
 export default function AddRecipe() {
     const client = getRecipeClient();
-    let [tagsClicked, setTagsClicked] = useState(null);
     let [photoAdded, setPhotoAdded] = useState(false);
     let [favorite, setFavorite] = useState(false);
     let [yieldQuantity, setYieldQuantity] = useState(1);
@@ -207,92 +262,62 @@ export default function AddRecipe() {
         data: tags,
         error: tagsError,
         isLoading: tagsIsLoading,
+        mutate: tagsRefresh,
     } = useSWRImmutable(["listTags"], async () => {
-        let tags = await client.tags.listTags({});
-        tags.items = _.sortBy(tags.items, (x) => x.name);
-
-        let clicked = {};
-        for (let tag of tags.items) {
-            clicked[tag.id] = true;
-        }
-        setTagsClicked(clicked);
-
-        return tags;
+        let tags = await exhaustPagination(
+            (args) => client.tags.listTags(args),
+            {}
+        );
+        tags = _.sortBy(tags, (x) => x.name);
+        return _.map(tags, (x) => ({ clicked: false, ...x }));
     });
 
-    let [tagsRender, setTagsRender] = useState(tags);
-
-    useEffect(() => {
-        if (tagsRender === null || tagsRender === undefined) {
-            setTagsRender(tags);
-        }
-    }, [tags]);
-
-    let handleClickAddTag = useCallback(
-        (newTag) => {
-            return async () => {
-                let createTag = await client.tags.createTag({
-                    requestBody: {
-                        name: newTag,
-                    },
-                });
-                let newTagsRender = _.cloneDeep(tagsRender);
-                newTagsRender.items.push(createTag);
-                newTagsRender.items = _.sortBy(
-                    newTagsRender.items,
-                    (x) => x.name
-                );
-                setTagsRender(newTagsRender);
-            };
-        },
-        [tagsRender]
-    );
-
-    let handleClickDeleteTag = useCallback(
-        (id) => {
-            return () => {
-                let newTagsRender = _.cloneDeep(tagsRender);
-                client.tags.deleteTag({ id: id });
-
-                for (let t of newTagsRender.items) {
-                    if (t["id"] === id) {
-                        newTagsRender.items.pop(t);
-                    }
-                }
-
-                setTagsRender(newTagsRender);
-            };
-        },
-        [tagsRender]
-    );
-
-    let addtlClassNameAttrTag = (id) => {
-        if (!tagsClicked[id]) {
-            return "bg-black text-white";
-        }
-        return "";
-    };
-
-    let handleClickTag = (id) => {
+    let handleClickTag = (idx) => {
         return () => {
-            let newTagsClicked = _.cloneDeep(tagsClicked);
-            newTagsClicked[id] = !newTagsClicked[id];
-            setTagsClicked(newTagsClicked);
+            let newTags = _.cloneDeep(tags);
+            newTags[idx].clicked = !newTags[idx].clicked;
+            tagsRefresh(newTags, { revalidate: false });
         };
     };
 
     let handleClickAddPhoto = () => {};
 
-    let fillFavorite = () => {
-        if (favorite) {
-            return "red";
-        }
-        return "none";
-    };
-
     let handleClickFavorite = () => {
         let newFavorite = !favorite;
         setFavorite(newFavorite);
+    };
+
+    let handleAddTag = async (tagId) => {
+        tagsRefresh(
+            async () => {
+                let newTags = await exhaustPagination(
+                    (args) => client.tags.listTags(args),
+                    {}
+                );
+                newTags = _.sortBy(newTags, (x) => x.name);
+
+                let idClickedMap = {};
+                for (let tag of tags) {
+                    idClickedMap[tag.id] = tag.clicked;
+                }
+
+                for (let tag of newTags) {
+                    tag.clicked = idClickedMap[tag.id] || false;
+                }
+                return newTags;
+            },
+            { revalidate: false }
+        );
+    };
+
+    let handleDeleteTag = async (tagId) => {
+        let newTags = [];
+        for (let tag of tags) {
+            if (tag.id !== tagId) {
+                newTags.push(tag);
+            }
+        }
+        tagsRefresh(newTags, { revalidate: false });
     };
 
     return (
@@ -323,18 +348,16 @@ export default function AddRecipe() {
                         </div>
                         <div className="flex flex-col items-center">
                             <div className="flex flex-wrap">
-                                {tagsRender
-                                    ? tagsRender.items.map((tag, idx) => (
+                                {tags
+                                    ? tags.map((tag, idx) => (
                                           <button
                                               key={idx}
                                               className={`block border-2 border-black rounded-md p-1 mr-2 mb-2 ${
-                                                  tagsClicked
-                                                      ? addtlClassNameAttrTag(
-                                                            tag.id
-                                                        )
+                                                  tag.clicked
+                                                      ? "bg-black text-white"
                                                       : ""
                                               }`}
-                                              onClick={handleClickTag(tag.id)}
+                                              onClick={handleClickTag(idx)}
                                           >
                                               <span>{`${tag.name}`}</span>
                                           </button>
@@ -342,9 +365,8 @@ export default function AddRecipe() {
                                     : "Loading..."}
                             </div>
                             <TagModal
-                                tagsRender={tagsRender}
-                                handleClickAddTag={handleClickAddTag}
-                                handleClickDeleteTag={handleClickDeleteTag}
+                                handleAddTag={handleAddTag}
+                                handleDeleteTag={handleDeleteTag}
                             ></TagModal>
                         </div>
                     </div>
@@ -403,7 +425,7 @@ export default function AddRecipe() {
                             </div>
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                fill={fillFavorite()}
+                                fill={favorite ? "red" : ""}
                                 viewBox="0 0 24 24"
                                 strokeWidth="1.5"
                                 stroke="currentColor"
