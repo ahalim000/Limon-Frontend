@@ -62,7 +62,9 @@ export default function Header() {
                 </a>
                 <p className="flex-initial px-3">Meal Planner</p>
                 <p className="flex-initial px-3">Grocery List</p>
-                <p className="flex-initial px-3">Import Recipe</p>
+                <a className="flex-initial px-3" href="/recipes/add">
+                    Add Recipe
+                </a>
             </div>
             <div className="border-t-2 border-t-black mb-8"></div>
         </div>

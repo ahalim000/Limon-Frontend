@@ -5,7 +5,15 @@ import { getRecipeClient } from "@/utils";
 import _ from "lodash";
 import { useState } from "react";
 import normalizeQuantityUnits from "@/converter";
-import { RationalValue } from "@/converter";
+
+function RecipeAttribute({ label, className, value }) {
+    return (
+        <div className={"text-lg " + className}>
+            <span className="font-bold mr-1">{`${label}: `}</span>
+            <p>{value ? value : "Loading..."}</p>
+        </div>
+    );
+}
 
 export default function Recipe() {
     const client = getRecipeClient();
@@ -27,20 +35,27 @@ export default function Recipe() {
         let recipe = await client.recipes.getRecipe({
             id: id,
         });
-
-        let ingredients = _.map(recipe.ingredients, (ing) => ({
-            ...ing,
-            active: true,
-            scaleQuantity: ing.quantity,
-            scaleUnit: ing.unit,
-            fmt: new RationalValue(ing.quantity).toString(),
-        }));
+        let ingredients = _.map(recipe.ingredients, (ing) => {
+            let normalized = normalizeQuantityUnits(
+                ing.quantity,
+                ing.unit,
+                recipe.servings,
+                recipe.servings,
+                true
+            );
+            return {
+                ...ing,
+                active: true,
+                scaleQuantity: normalized.quantity,
+                scaleUnit: normalized.unit,
+                fmt: normalized.rational.toString(),
+            };
+        });
         let steps = _.map(recipe.steps, (st) => ({ ...st, active: true }));
 
         setIngredients(ingredients);
         setSteps(steps);
         setServes(recipe.servings);
-        // console.log(ingredients);
 
         return recipe;
     });
@@ -71,7 +86,8 @@ export default function Recipe() {
                     ingredient.quantity,
                     ingredient.unit,
                     recipe.servings,
-                    newServings
+                    newServings,
+                    newServes === recipe.servings
                 );
                 ingredient.scaleQuantity = normalized.quantity;
                 ingredient.scaleUnit = normalized.unit;
@@ -96,7 +112,8 @@ export default function Recipe() {
                     ingredient.quantity,
                     ingredient.unit,
                     recipe.servings,
-                    newServings
+                    newServings,
+                    newServes === recipe.servings
                 );
                 ingredient.scaleQuantity = normalized.quantity;
                 ingredient.scaleUnit = normalized.unit;
@@ -107,12 +124,18 @@ export default function Recipe() {
         };
     };
 
-    function createQuantityForRender(ingredient) {
-        if (ingredient.scaleQuantity % 1 === 0) {
-            return ingredient.scaleQuantity.toString();
+    let renderPrepTimeCookTime = (time) => {
+        if (time < 60) {
+            return `${time} mins`;
         }
-        return ingredient.fmt.toString();
-    }
+
+        let hours = Math.floor(time / 60);
+        let minutes = time % 60;
+        if (minutes === 0) {
+            return `${hours} hrs`;
+        }
+        return `${hours} hrs ${minutes} mins`;
+    };
 
     return (
         <>
@@ -132,100 +155,66 @@ export default function Recipe() {
                     <div className="font-bold text-4xl">
                         {recipe ? recipe.name : ""}
                     </div>
-                    <div className="text-lg mt-8 flex">
-                        {recipe
-                            ? [
-                                  <span
-                                      key={"source_key"}
-                                      className="font-bold mr-1"
-                                  >
-                                      Source:{" "}
-                                  </span>,
-                                  <p key={"source_val"}>{recipe.source}</p>,
-                              ]
-                            : ""}
-                    </div>
+                    <RecipeAttribute
+                        label="Source"
+                        className={"mt-8 flex"}
+                        value={
+                            recipe ? (
+                                <a
+                                    href={recipe.source}
+                                    className="text-blue-700 visited:text-purple-900"
+                                >
+                                    {recipe.source}
+                                </a>
+                            ) : null
+                        }
+                    ></RecipeAttribute>
                     <div className="flex">
-                        <div className="text-lg mt-8 mr-8 flex">
-                            {recipe
-                                ? [
-                                      <span
-                                          key={"makes_key"}
-                                          className="font-bold mr-1"
-                                      >
-                                          Makes:{" "}
-                                      </span>,
-                                      <p key={"makes_val"}>
-                                          {recipe.servings}{" "}
-                                          {recipe.servings_type}
-                                      </p>,
-                                  ]
-                                : ""}
-                        </div>
-                        <div className="text-lg mt-8 mr-8 flex">
-                            {recipe
-                                ? [
-                                      <span
-                                          key={"prep_time_key"}
-                                          className="font-bold mr-1"
-                                      >
-                                          Prep Time:{" "}
-                                      </span>,
-                                      <p key={"prep_time_val"}>
-                                          {recipe.prep_time}
-                                      </p>,
-                                  ]
-                                : ""}
-                        </div>
-                        <div className="text-lg mt-8 mr-8 flex">
-                            {recipe
-                                ? [
-                                      <span
-                                          key={"cook_time_key"}
-                                          className="font-bold mr-1"
-                                      >
-                                          Cook Time:{" "}
-                                      </span>,
-                                      <p key={"cook_time_val"}>
-                                          {recipe.cook_time}
-                                      </p>,
-                                  ]
-                                : ""}
-                        </div>
+                        <RecipeAttribute
+                            label="Makes"
+                            className="mt-8 mr-8 flex"
+                            value={
+                                recipe
+                                    ? `${recipe.servings} ${recipe.servings_type}`
+                                    : null
+                            }
+                        ></RecipeAttribute>
+                        <RecipeAttribute
+                            label="Prep"
+                            className="mt-8 mr-8 flex"
+                            value={
+                                recipe
+                                    ? renderPrepTimeCookTime(recipe.prep_time)
+                                    : null
+                            }
+                        ></RecipeAttribute>
+                        <RecipeAttribute
+                            label="Cook"
+                            className="mt-8 mr-8 flex"
+                            value={
+                                recipe
+                                    ? renderPrepTimeCookTime(recipe.cook_time)
+                                    : null
+                            }
+                        ></RecipeAttribute>
                     </div>
-                    <div className="text-lg mt-8 flex">
-                        {recipe
-                            ? [
-                                  <span
-                                      key={"tags_key"}
-                                      className="font-bold mr-1"
-                                  >
-                                      Tags:{" "}
-                                  </span>,
-                                  <p key={"tags_val"}>
-                                      {_.join(
-                                          _.map(recipe.tags, (x) => x.name),
-                                          ", "
-                                      )}
-                                  </p>,
-                              ]
-                            : ""}
-                    </div>
-                    <div className="text-lg mt-8">
-                        {recipe
-                            ? [
-                                  <span
-                                      key="description_key"
-                                      className="font-bold"
-                                  >
-                                      Description:{" "}
-                                  </span>,
-                                  <p key="description_val">
-                                      {recipe.description}
-                                  </p>,
-                              ]
-                            : ""}
-                    </div>
+                    <RecipeAttribute
+                        label="Tags"
+                        className="mt-8 flex"
+                        value={
+                            recipe
+                                ? _.join(
+                                      _.map(recipe.tags, (x) => x.name),
+                                      ", "
+                                  )
+                                : null
+                        }
+                    ></RecipeAttribute>
+                    <RecipeAttribute
+                        label="Description"
+                        className="mt-8"
+                        value={recipe ? recipe.description : null}
+                    ></RecipeAttribute>
                 </div>
             </div>
 
@@ -273,6 +262,7 @@ export default function Recipe() {
                         </svg>
                     </div>
                     <div className="ml-20 mb-8">
+                        t
                         <ul className="w-96">
                             {ingredients
                                 ? ingredients.map((ingredient, idx) => (
@@ -288,13 +278,10 @@ export default function Recipe() {
                                               )}
                                           >
                                               <span className="font-bold">
-                                                  {ingredient.scaleQuantity !==
-                                                  0
-                                                      ? createQuantityForRender(
-                                                            ingredient
-                                                        )
-                                                      : ""}
-                                              </span>{" "}
+                                                  {ingredient.fmt === "0"
+                                                      ? ""
+                                                      : `${ingredient.fmt} `}
+                                              </span>
                                               {ingredient.scaleUnit}{" "}
                                               {ingredient.name}
                                               {ingredient.comment

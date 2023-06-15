@@ -87,9 +87,6 @@ UNIT_PRECISION_MAP[CENTIMETER] = [1/10]
 UNIT_PRECISION_MAP[METER] = [1/10]
 UNIT_PRECISION_MAP[UNKNOWN] = [1/8, 1/3]
 
-// console.log(volume.systems.imperial.cup)
-// console.log(volume.anchors)
-
 const convert = configureMeasurements({
     volume: {
         systems: {
@@ -275,7 +272,7 @@ class RationalValue {
     }
 
     toString() {
-        if (this.numerator === null || this.numerator === undefined) {
+        if (this.numerator === null || this.numerator === undefined || this.numerator === 0) {
             return `${this.whole}`;
         } else if (this.whole === 0) {
             return `${this.numerator}/${this.denominator}`
@@ -294,7 +291,7 @@ function rationalizeDecimal(quantity, unit) {
         if (numerator % i == 0 && denominator % i == 0) {
             numerator = numerator / i;
             denominator = denominator / i;
-            break
+            break;
         }
     }
 
@@ -304,11 +301,13 @@ function rationalizeDecimal(quantity, unit) {
 function getBestUnit(quantity, unit) {
     let items = MIN_VAL_PER_UNIT[UNITS[unit]][SYSTEMS[unit]];
     let normalizedQuantity = convert(quantity).from(unit).to(items[0]["unit"]);
+
     for (let i = 0; i < items.length - 1; i++) {
         if (normalizedQuantity < items[i + 1]["minValue"]) {
             return items[i]["unit"]
         }
     }
+
     return items[items.length - 1]["unit"]
 }
 
@@ -360,17 +359,14 @@ function roundByDecimal(quantity, decimalToRoundTo) {
     return Math.round(quantity * inv) / inv;
 }
 
-function normalizeQuantityUnits(quantity, unit, oldServings, newServings) {
+function normalizeQuantityUnits(quantity, unit, oldServings, newServings, ignoreUnits) {
     let newQuantity = convertQuantity(quantity, oldServings, newServings);
     let sanitizedUnit = sanitizeUnit(unit);
     let newUnit;
-    let cutoff = 1/4;
 
-    if (sanitizedUnit === null) {
+    if (sanitizedUnit === null || ignoreUnits) {
         newUnit = unit;
     } else {
-        // console.log(`VALUES HERE: ${newQuantity} ${newUnit}`)
-        // let res = convert(newQuantity).from(newUnit).toBest({ cutOffNumber: cutoff});
         newUnit = getBestUnit(newQuantity, sanitizedUnit);
         newQuantity = convert(newQuantity).from(sanitizedUnit).to(newUnit);
     }
@@ -380,11 +376,10 @@ function normalizeQuantityUnits(quantity, unit, oldServings, newServings) {
         quantityPrecision = 0.0625;
     }
     newQuantity = roundByDecimal(newQuantity, quantityPrecision);
-    // console.log(quantity, unit, oldServings, newServings, newQuantity, newUnit)
-    let [whole, numerator, denominator] = rationalizeDecimal(newQuantity, newUnit)
-    console.log(newQuantity, newUnit, whole, numerator, denominator)
+    let [whole, numerator, denominator] = rationalizeDecimal(newQuantity, newUnit);
+
     return {quantity: newQuantity, unit: newUnit, rational: new RationalValue(whole, numerator, denominator)};
 }
 
 export default normalizeQuantityUnits;
-export { RationalValue };
+export { RationalValue, rationalizeDecimal };
