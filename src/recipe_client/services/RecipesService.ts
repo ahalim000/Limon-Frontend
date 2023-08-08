@@ -1,6 +1,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { Body_recipes_upload_recipe_image } from '../models/Body_recipes_upload_recipe_image';
 import type { Page_Recipe_ } from '../models/Page_Recipe_';
 import type { Recipe } from '../models/Recipe';
 import type { RecipeCreate } from '../models/RecipeCreate';
@@ -89,6 +90,32 @@ export class RecipesService {
             url: '/api/recipes',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
+     * Upload Recipe Image
+     * @returns Recipe Successful Response
+     * @throws ApiError
+     */
+    public uploadRecipeImage({
+        id,
+        formData,
+    }: {
+        id: number,
+        formData: Body_recipes_upload_recipe_image,
+    }): CancelablePromise<Recipe> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/api/recipes/{id}/upload_image',
+            path: {
+                'id': id,
+            },
+            formData: formData,
+            mediaType: 'multipart/form-data',
             errors: {
                 422: `Validation Error`,
             },

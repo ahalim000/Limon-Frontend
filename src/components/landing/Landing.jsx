@@ -86,7 +86,7 @@ export default function Landing() {
     return (
         <>
             <Header></Header>
-            <div className="h-screen bg-[#ffffff]">
+            <div className="h-screen bg-[#ffffff] mt-20">
                 <div className="flex justify-center">
                     <div>
                         <Carousel

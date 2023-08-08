@@ -60,14 +60,14 @@ export default function Carousel({ className, displayItemCount, items, name }) {
                 >
                     {items.map((item, idx) => (
                         <div
-                            className="h-full m-1 font-bold text-sm whitespace-pre-wrap"
+                            className="h-full m-1 w-44 line-clamp-1 font-bold text-sm text-center whitespace-pre-wrap"
                             key={idx}
                         >
                             <div className="flex w-44 h-44">
                                 <img
                                     height="100%"
                                     width="100%"
-                                    className="object-cover rounded-lg hover:cursor-pointer"
+                                    className="object-cover rounded-lg hover:cursor-pointer transition ease-in-out hover:opacity-50"
                                     src={item.imageSrc}
                                     onClick={item.onClick}
                                 ></img>

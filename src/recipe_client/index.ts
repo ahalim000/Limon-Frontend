@@ -9,6 +9,7 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
+export type { Body_recipes_upload_recipe_image } from './models/Body_recipes_upload_recipe_image';
 export type { Body_token_create_token } from './models/Body_token_create_token';
 export type { GroceryList } from './models/GroceryList';
 export type { GroceryListCreate } from './models/GroceryListCreate';

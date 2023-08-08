@@ -13,7 +13,7 @@ export function middleware(req) {
         cookie = req.cookies.get("session-token")?.value;
     }
     let invalid = false;
-    // If session-token does not exist, cookie will have a string with the vlaue undefined
+    // If session-token does not exist, cookie will have a string with the value undefined
     if (cookie !== null) {
         let decodedJWT = jwt.decode(cookie);
         invalid = Date.now() >= decodedJWT.exp * 1000

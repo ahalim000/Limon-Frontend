@@ -1,0 +1,29 @@
+:root {
+    --fc-border-color: black;
+}
+
+.meal-plan-item .fc-scrollgrid-section > th {
+    border: 0px;
+}
+
+.meal-plan-item .fc-theme-standard td:last-child {
+    border-right: 0px;
+}
+
+.meal-plan-item .fc-theme-standard tr:last-child td {
+    border-bottom: 0px;
+}
+
+.meal-plan-item .fc-theme-standard .fc-col-header-cell:first-child {
+    border-bottom: 1px solid black;
+}
+
+.meal-plan-item .fc-theme-standard .fc-col-header-cell:last-child {
+    border-bottom: 1px solid black;
+    border-right-width: 0px;
+}
+
+.meal-plan-item .fc-scrollgrid {
+    border: 1px solid var(--fc-border-color);
+    border-radius: 6px;
+}

@@ -1,3 +1,5 @@
-export default function Recipes() {
-    return <h1>Hello!</h1>;
+import Recipes from "@/components/recipes/Recipes";
+
+export default function Home() {
+    return <Recipes></Recipes>;
 }
