@@ -1,6 +1,8 @@
-rm -rf src/recipe_client/
-curl http://localhost:8000/openapi.json -o openapi.json
-# https://fastapi.tiangolo.com/advanced/generate-clients/#preprocess-the-openapi-specification-for-the-client-generator
-# generates openapi-fixed.json
-./process_openapi.py
-openapi -i openapi-fixed.json --name RecipeClient --output src/recipe_client
+## About
+
+An upcoming app for organizing recipes and creating meal plans. Key features include:
+
+-   A clean interface that makes it easy to read recipes, make edits, and strike off ingredients and steps while cooking.
+-   Smart rounding and unit conversion that allow you to scale recipes without worrying about awkward ingredient amounts.
+-   An easy-to-use planner that lets you decide what to make (and how much to make) well in advance.
+-   A versatile grocery list that reduces supermarket trips by self-generating based on your meal plans.
