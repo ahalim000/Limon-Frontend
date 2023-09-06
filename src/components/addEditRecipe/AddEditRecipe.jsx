@@ -8,7 +8,6 @@ import { useRouter } from "next/router";
 
 import TagModal from "@/components/tagModal/TagModal";
 import AreYouSureModal from "../areYouSureModal/AreYouSureModal";
-import TextareaAuto from "../textareaAuto/TextareaAuto";
 import { exhaustPagination } from "@/utils";
 
 function InputNumber({ rightMargin, max, onChange, defaultValue }) {
@@ -343,29 +342,44 @@ export default function AddEditRecipe({ edit = false }) {
                     <div className="mx-28 mb-8 flex flex-shrink-0 font-bold text-2xl">
                         About
                     </div>
-                    <TextareaAuto
-                        margins="28"
-                        id="name"
-                        name="Name"
-                        placeholder="Avocado Grilled Cheese"
-                        width="96"
-                        defaultValue={recipe ? name : null}
-                        onChange={(event) => {
-                            setName(event.target.value);
-                        }}
-                    ></TextareaAuto>
-                    <TextareaAuto
-                        margins="28"
-                        id="description"
-                        name="Description"
-                        minRows={3}
-                        placeholder="A sandwich that balances flavor and stretchiness."
-                        width="96"
-                        defaultValue={recipe ? description : null}
-                        onChange={(event) => {
-                            setDescription(event.target.value);
-                        }}
-                    ></TextareaAuto>
+                    <div className={`mx-28 w-96`}>
+                        <label
+                            htmlFor="name"
+                            className="block text-md font-bold text-gray-800 dark:text-black"
+                        >
+                            Name
+                        </label>
+                        <TextareaAutosize
+                            margins="28"
+                            id="name"
+                            className="border-2 border-black rounded-md py-1 px-2 focus:outline-none mb-2 mt-2 h-9 w-96 resize-none"
+                            minRows={1}
+                            placeholder="Avocado Grilled Cheese"
+                            defaultValue={recipe ? name : null}
+                            onChange={(event) => {
+                                setName(event.target.value);
+                            }}
+                        ></TextareaAutosize>
+                    </div>
+                    <div className={`mx-28 w-96`}>
+                        <label
+                            htmlFor="description"
+                            className="block text-md font-bold text-gray-800 dark:text-black"
+                        >
+                            Description
+                        </label>
+                        <TextareaAutosize
+                            margins="28"
+                            id="description"
+                            className="border-2 border-black rounded-md py-1 px-2 focus:outline-none mb-2 mt-2 h-9 w-96 resize-none"
+                            minRows={3}
+                            placeholder="A sandwich that balances flavor and stretchiness."
+                            defaultValue={recipe ? description : null}
+                            onChange={(event) => {
+                                setDescription(event.target.value);
+                            }}
+                        ></TextareaAutosize>
+                    </div>
                     <div className="mx-28">
                         <div className="block mb-2 text-md font-bold text-gray-800 dark:text-black">
                             Tags
@@ -503,25 +517,42 @@ export default function AddEditRecipe({ edit = false }) {
                             </svg>
                         </div>
                     </div>
-                    <TextareaAuto
-                        margins="28"
-                        id="source"
-                        name="Source"
-                        placeholder="Family recipe"
-                        width="96"
-                        defaultValue={recipe ? source : null}
-                        onChange={(event) => setSource(event.target.value)}
-                    ></TextareaAuto>
-                    <TextareaAuto
-                        margins="28"
-                        id="nutrition"
-                        name="Nutrition"
-                        placeholder="500 calories per serving"
-                        width="96"
-                        minRows="2"
-                        defaultValue={recipe ? nutrition : null}
-                        onChange={(event) => setNutrition(event.target.value)}
-                    ></TextareaAuto>
+                    <div className={`mx-28 w-96`}>
+                        <label
+                            htmlFor="source"
+                            className="block text-md font-bold text-gray-800 dark:text-black"
+                        >
+                            Source
+                        </label>
+                        <TextareaAutosize
+                            margins="28"
+                            id="source"
+                            className="border-2 border-black rounded-md py-1 px-2 focus:outline-none mb-2 mt-2 h-9 w-96 resize-none"
+                            minRows={1}
+                            placeholder="Family recipe"
+                            defaultValue={recipe ? source : null}
+                            onChange={(event) => setSource(event.target.value)}
+                        ></TextareaAutosize>
+                    </div>
+                    <div className={`mx-28 w-96`}>
+                        <label
+                            htmlFor="nutrition"
+                            className="block text-md font-bold text-gray-800 dark:text-black"
+                        >
+                            Nutrition
+                        </label>
+                        <TextareaAutosize
+                            margins="28"
+                            id="nutrition"
+                            className="border-2 border-black rounded-md py-1 px-2 focus:outline-none mb-2 mt-2 h-9 w-96 resize-none"
+                            minRows={2}
+                            placeholder="500 calories per serving"
+                            defaultValue={recipe ? nutrition : null}
+                            onChange={(event) =>
+                                setNutrition(event.target.value)
+                            }
+                        ></TextareaAutosize>
+                    </div>
                 </div>
 
                 <div className="w-1/2 mr-32">

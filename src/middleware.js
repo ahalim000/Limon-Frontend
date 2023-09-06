@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import jwt from '@tsndr/cloudflare-worker-jwt'
 
 export const config = {
     matcher: [

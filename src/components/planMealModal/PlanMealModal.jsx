@@ -8,7 +8,6 @@ import useSWRImmutable from "swr/immutable";
 import { exhaustPagination } from "@/utils";
 import SearchBar from "@/components/searchBar/SearchBar";
 import RecipeList from "@/components/recipeList/RecipeList";
-import TextareaAuto from "../textareaAuto/TextareaAuto";
 
 // function MealButton({ chosenMeal, name, onClick }) {
 //     return (
@@ -280,16 +279,24 @@ export default function PlanMealModal({}) {
                             </div>
                         </div> */}
                         {chosenMeal === "Other" ? (
-                            <TextareaAuto
-                                margins="8"
-                                width="80"
-                                id="otherMeal"
-                                name="Other"
-                                placeholder="Enter meal"
-                                onChange={(event) =>
-                                    setOtherMeal(event.target.value)
-                                }
-                            ></TextareaAuto>
+                            <div className={`mx-8`}>
+                                <label
+                                    htmlFor="name"
+                                    className="block text-lg font-bold text-gray-800 dark:text-black"
+                                >
+                                    Other
+                                </label>
+                                <TextareaAutosize
+                                    margins="8"
+                                    id="otherMeal"
+                                    className="border-2 border-black rounded-lg text-lg py-1 px-2 focus:outline-none mb-2 mt-2 h-10 w-[41rem] resize-none"
+                                    minRows={1}
+                                    placeholder="Enter meal"
+                                    onChange={(event) =>
+                                        setOtherMeal(event.target.value)
+                                    }
+                                ></TextareaAutosize>
+                            </div>
                         ) : (
                             ""
                         )}
