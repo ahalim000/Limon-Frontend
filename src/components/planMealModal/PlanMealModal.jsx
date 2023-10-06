@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Modal from "react-modal";
 import TextareaAutosize from "react-textarea-autosize";
 import { getRecipeClient } from "@/utils";
@@ -8,19 +8,6 @@ import useSWRImmutable from "swr/immutable";
 import { exhaustPagination } from "@/utils";
 import SearchBar from "@/components/searchBar/SearchBar";
 import RecipeList from "@/components/recipeList/RecipeList";
-
-// function MealButton({ chosenMeal, name, onClick }) {
-//     return (
-//         <div
-//             className={`block border-2 border-black rounded-md hover:cursor-pointer hover:opacity-50 p-1 mr-2 mb-2 ${
-//                 chosenMeal === name ? "bg-black text-white" : ""
-//             }`}
-//             onClick={onClick}
-//         >
-//             {name}
-//         </div>
-//     );
-// }
 
 function MealButton({ chosenMeal, name, onClick }) {
     return (
@@ -67,16 +54,10 @@ export default function PlanMealModal({}) {
     let [modalIsOpen, setModalIsOpen] = useState(false);
     let [chosenMeal, setChosenMeal] = useState("Breakfast");
     let [otherMeal, setOtherMeal] = useState("");
+    let [searchBarInput, setSearchBarInput] = useState("");
     let [recipesDisplay, setRecipesDisplay] = useState([]);
     let [chosenRecipes, setChosenRecipes] = useState([]);
-
-    // useEffect(() => {
-    //     if (!recipes) {
-    //         return;
-    //     }
-
-    //     setRecipesDisplay(recipes);
-    // }, [recipes]);
+    let [dropdownOpenClose, setDropdownOpenClose] = useState("");
 
     function openModal() {
         setModalIsOpen(true);
@@ -100,8 +81,11 @@ export default function PlanMealModal({}) {
 
     let handleSearchRecipes = () => {
         return (event) => {
+            setSearchBarInput(event.target.value);
+
             if (event.target.value === "") {
                 setRecipesDisplay([]);
+                setDropdownOpenClose("");
                 return;
             }
 
@@ -117,11 +101,19 @@ export default function PlanMealModal({}) {
                 }
             }
 
+            if (matchingRecipes.length !== 0) {
+                setDropdownOpenClose(
+                    "absolute w-[41rem] z-10 shadow-2xl border-2 rounded-lg border-black opacity-100"
+                );
+            } else {
+                setDropdownOpenClose("");
+            }
+
             setRecipesDisplay(matchingRecipes);
         };
     };
 
-    let handleClickX = (recipe) => {
+    let handleClickRemove = (recipe) => {
         return () => {
             let newChosenRecipes = _.clone(chosenRecipes);
             for (let idx = 0; idx < newChosenRecipes.length; idx++) {
@@ -145,8 +137,11 @@ export default function PlanMealModal({}) {
         newChosenRecipes.push(recipe);
         newChosenRecipes[newChosenRecipes.length - 1].newServings =
             recipe.servings;
-        setChosenRecipes(newChosenRecipes);
+        setChosenRecipes(_.sortBy(newChosenRecipes, (x) => x.name));
+
+        setDropdownOpenClose("");
         setRecipesDisplay([]);
+        setSearchBarInput("");
     };
 
     let changeServingSize = (event, recipe) => {
@@ -308,20 +303,21 @@ export default function PlanMealModal({}) {
                                 <SearchBar
                                     onChange={handleSearchRecipes()}
                                     bottomMargin={5}
+                                    value={searchBarInput}
                                 ></SearchBar>
                             </div>
-                            <div className="absolute w-[41rem] z-10">
+                            <div className={dropdownOpenClose}>
                                 <RecipeList
-                                    backgroundColor={"bg-slate-300"}
-                                    padding={5}
+                                    backgroundColor={"bg-white"}
+                                    padding={3}
                                     recipeCollection={recipesDisplay}
-                                    interRecipeSpace={"4"}
-                                    imageContainerHeightWidth={"16"}
-                                    hover={true}
-                                    heartHeightWidth={"3"}
-                                    textDataLeftMargin={"2"}
+                                    interRecipeSpace={4}
+                                    imageContainerHeightWidth={16}
+                                    hoverWholeItem={true}
+                                    heartHeightWidth={4}
+                                    textDataLeftMargin={2}
                                     textDataSize={"lg"}
-                                    interTextDataSpace={"0"}
+                                    interTextDataSpace={0}
                                     onClick={handleClickRecipe}
                                     callWithRecipe={true}
                                     timeMakes={false}
@@ -337,13 +333,15 @@ export default function PlanMealModal({}) {
                             <div>
                                 <RecipeList
                                     recipeCollection={chosenRecipes}
-                                    interRecipeSpace={"6"}
-                                    imageContainerHeightWidth={"28"}
-                                    hover={false}
-                                    heartHeightWidth={"6"}
-                                    textDataLeftMargin={"6"}
+                                    interRecipeSpace={6}
+                                    imageContainerHeightWidth={28}
+                                    hoverWholeItem={false}
+                                    heartHeightWidth={6}
+                                    removeIcon={true}
+                                    remove={handleClickRemove}
+                                    textDataLeftMargin={4}
                                     textDataSize={"xl"}
-                                    interTextDataSpace={"2"}
+                                    interTextDataSpace={2}
                                     timeMakes={false}
                                     tags={false}
                                     servings={true}

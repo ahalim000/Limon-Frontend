@@ -20,8 +20,8 @@ export function middleware(req) {
     }
 
     if (cookie === null || invalid) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/login";
-      return NextResponse.redirect(url, req.url);
+        const url = req.nextUrl.clone();
+        url.pathname = "/login";
+        return NextResponse.redirect(url, req.url);
     }
 }

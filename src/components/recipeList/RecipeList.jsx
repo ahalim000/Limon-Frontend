@@ -1,4 +1,27 @@
 import { calculateTotalTime } from "@/utils";
+import { remove } from "lodash";
+
+function RemoveIcon({ onClick }) {
+    return (
+        <div className="flex flex-col items-center" onClick={onClick}>
+            <p className="font-bold">Remove</p>
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="3"
+                stroke="currentColor"
+                className="w-8 h-8"
+            >
+                <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                />
+            </svg>
+        </div>
+    );
+}
 
 export default function RecipeList({
     backgroundColor,
@@ -6,8 +29,10 @@ export default function RecipeList({
     recipeCollection,
     interRecipeSpace,
     imageContainerHeightWidth,
-    hover,
+    hoverWholeItem,
     heartHeightWidth,
+    removeIcon,
+    remove,
     textDataLeftMargin,
     textDataSize,
     interTextDataSpace,
@@ -28,7 +53,7 @@ export default function RecipeList({
                       <li
                           key={idx}
                           className={`flex items-center ${
-                              hover
+                              hoverWholeItem
                                   ? "hover:cursor-pointer transition ease-in-out hover:opacity-50"
                                   : ""
                           } mb-${
@@ -41,9 +66,9 @@ export default function RecipeList({
                           <div
                               className={`flex shrink-0 w-full mr-4 h-${imageContainerHeightWidth}`}
                           >
-                              <div className="flex relative">
+                              <div className="flex relative group">
                                   <img
-                                      className={`object-cover rounded-lg w-${imageContainerHeightWidth} h-${imageContainerHeightWidth}`}
+                                      className={`object-cover rounded-lg w-${imageContainerHeightWidth} h-${imageContainerHeightWidth} transition ease-in-out group-hover:opacity-50 group-hover:cursor-pointer`}
                                       src={
                                           recipe.image_url
                                               ? recipe.image_url
@@ -58,7 +83,7 @@ export default function RecipeList({
                                               viewBox="0 0 24 24"
                                               strokeWidth="1.5"
                                               stroke="currentColor"
-                                              className={`object-cover hover:cursor-pointer w-${heartHeightWidth} h-${heartHeightWidth}`}
+                                              className={`object-cover w-${heartHeightWidth} h-${heartHeightWidth} transition ease-in-out group-hover:opacity-50 group-hover:cursor-pointer`}
                                           >
                                               <path
                                                   strokeLinecap="round"
@@ -66,6 +91,17 @@ export default function RecipeList({
                                                   d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
                                               />
                                           </svg>
+                                      ) : (
+                                          ""
+                                      )}
+                                  </div>
+                                  <div
+                                      className={`absolute bottom-7 right-7 opacity-0 transition ease-in-out group-hover:opacity-100 group-hover:cursor-pointer`}
+                                  >
+                                      {removeIcon ? (
+                                          <RemoveIcon
+                                              onClick={remove(recipe)}
+                                          ></RemoveIcon>
                                       ) : (
                                           ""
                                       )}

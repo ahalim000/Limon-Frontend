@@ -1,4 +1,4 @@
-export default function SearchBar({ onChange, bottomMargin }) {
+export default function SearchBar({ onChange, bottomMargin, value }) {
     return (
         <div className={`flex relative mb-${bottomMargin}`}>
             <svg
@@ -25,6 +25,7 @@ export default function SearchBar({ onChange, bottomMargin }) {
                 placeholder="Search recipes..."
                 onChange={onChange}
                 autoComplete="off"
+                value={value}
             ></input>
         </div>
 

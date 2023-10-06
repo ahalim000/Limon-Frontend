@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Header from "@/components/header/Header";
 import SearchBar from "@/components/searchBar/SearchBar";
 import RecipeList from "@/components/recipeList/RecipeList";
-import { exhaustPagination, calculateTotalTime } from "@/utils";
+import { exhaustPagination } from "@/utils";
 
 export default function Recipes() {
     const client = getRecipeClient();
@@ -73,7 +73,7 @@ export default function Recipes() {
                         recipeCollection={recipesDisplay}
                         interRecipeSpace={"6"}
                         imageContainerHeightWidth={"28"}
-                        hover={true}
+                        hoverWholeItem={true}
                         heartHeightWidth={"6"}
                         textDataLeftMargin={"6"}
                         textDataSize={"xl"}
